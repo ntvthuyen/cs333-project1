@@ -26,3 +26,5 @@ double random_double(){
 
 	return drand48();
 }
+
+

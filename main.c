@@ -1,11 +1,7 @@
 #include "random.h"
 
 int main(){
-	int a = random_integer();
-	unsigned c = random_unsigned_integer();
-	double b = random_double();
-	printf("%d %d \n",a,c);
-	printf("%f",b);
+	char c = roll_a_dice();
+	printf("%c",c);
 	return 0;
 }
-
