@@ -1,3 +1,4 @@
+#include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/module.h>
@@ -7,7 +8,7 @@
 
 #define DRIVER_AUTHOR "Nguyen Ho Huu Nghia <huunghia160799@gmail.com>"
 #define DRIVER_DESC "A sample character device driver"
-#define DRIVER_VERSION "0.4"
+#define DRIVER_VERSION "0.5"
 
 typedef struct vchar_dev {
 	unsigned char *control_registers;
@@ -20,6 +21,8 @@ struct vchar_driver {
 	struct class *device_class;
 	struct device *device;
 	vchar_device_t *vchar_hardware;
+	struct cdev *vcdev;
+	unsigned int open_cnt;
 } random_number_driver;
 
 /****************************** device specific - START *****************************/
@@ -63,6 +66,24 @@ void vchar_hw_exit(vchar_device_t *hardware)
 
 /******************************** OS specific - START *******************************/
 /* cac ham entry points */
+static int vchar_driver_open(struct inode *inode, struct file *filp)
+{
+	random_number_driver.open_cnt++;
+	printk("Handled opened event (%d)\n", random_number_driver.open_cnt);
+	return 0;
+}
+
+static int vchar_driver_release(struct inode *inode, struct file *filp)
+{
+	printk("Handled closed event\n");
+	return 0;
+}
+
+static struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.open = vchar_driver_open,
+	.release = vchar_driver_release,
+};
 
 /* ham khoi tao driver */
 static int __init vchar_driver_init(void)
@@ -107,12 +128,25 @@ static int __init vchar_driver_init(void)
 	}
 
 	/* dang ky cac entry point voi kernel */
+	random_number_driver.vcdev = cdev_alloc();
+	if (random_number_driver.vcdev == NULL) {
+		printk("Failed to allocate cdev data structure\n");
+		goto failed_allocate_cdev;
+	}
+	cdev_init(random_number_driver.vcdev, &fops);
+	result = cdev_add(random_number_driver.vcdev, random_number_driver.device_number, 1);
+	if (result < 0) {
+		printk("Failed to add char device to the system\n");
+		goto failed_allocate_cdev;
+	}
 
 	/* dang ky ham xu ly ngat */
 
 	printk("Initialize random number driver successfully\n");
 	return 0;
 
+failed_allocate_cdev:
+	vchar_hw_exit(random_number_driver.vchar_hardware);
 failed_init_hw:
 	kfree(random_number_driver.vchar_hardware);
 failed_allocate_structure:
@@ -131,6 +165,7 @@ static void __exit vchar_driver_exit(void)
 	/* huy dang ky xu ly ngat */
 
 	/* huy dang ky entry point voi kernel */
+	cdev_del(random_number_driver.vcdev);
 
 	/* giai phong thiet bi vat ly */
 	vchar_hw_exit(random_number_driver.vchar_hardware);
