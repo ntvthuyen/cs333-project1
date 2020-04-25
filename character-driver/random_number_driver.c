@@ -37,35 +37,44 @@ char *random(void)
 	get_random_bytes(&i, sizeof(i));
 	printk("%d", i);
 
-	// int t = i, c = 0;
-	// if (t < 0) {
-	// 	t = -t;
-	// 	// c = 1;
-	// }
-	// while (t > 0) {
-	// 	t = t / 10;
-	// 	// ++c;
-	// }
+	int t = i, c = 0;
+	if (t < 0) {
+		t = -t;
+		c = 1;
+	}
+	while (t > 0) {
+		t = t / 10;
+		++c;
+	}
+
 	char *str = kzalloc(MAX_LENGTH, GFP_KERNEL);
 	int index = 0;
+
+	int remaining = MAX_LENGTH - c, j = 0;
+	while (j++ < remaining) {
+		str[index++] = ' ';
+	}
+
 	if (i < 0) {
-		str[0] = '-';
+		str[index] = '-';
 		i = i * -1;
 		++index;
 	}
-	else {
-		str[index++] = '0';
-	}
+
+	char *temp = kzalloc(c + 1, GFP_KERNEL);
+	int temp_index = 0;
 	while (i > 0) {
-		str[index] = (char)(i % 10 + '0');
+		temp[temp_index] = (char)(i % 10 + '0');
 		i = i / 10;
-		++index;
+		++temp_index;
 	}
 
-	int remaining = MAX_LENGTH - index, j = 0;
-	while (j++ < remaining) {
-		str[index++] = '/0';
+	int k = temp_index - 1;
+	while(k >= 0) {
+		str[index++] = temp[k--];
 	}
+
+
 	printk("final random number: %s", str);
 	return str;
 }
