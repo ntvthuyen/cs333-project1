@@ -68,6 +68,6 @@
 #define CTRL_READ_DATA_BIT (1 << 0)
 #define CTRL_WRITE_DATA_BIT (1 << 1)
 
-#define ENABLE 1
-#define DISABLE 0
+#define ENABLED 1
+#define DISABLED 0
 /****************** Mo ta cac thanh ghi dieu khien: END ******************/

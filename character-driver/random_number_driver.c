@@ -3,19 +3,22 @@
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/uaccess.h>
 
 #include "random_number_driver.h"
 
 #define DRIVER_AUTHOR "Nguyen Ho Huu Nghia <huunghia160799@gmail.com>"
 #define DRIVER_DESC "A sample character device driver"
-#define DRIVER_VERSION "0.5"
+#define DRIVER_VERSION "0.6"
 
+// The class for the character device
 typedef struct vchar_dev {
 	unsigned char *control_registers;
 	unsigned char *status_registers;
 	unsigned char *data_registers;
 } vchar_device_t;
 
+// The main class for the driver
 struct vchar_driver {
 	dev_t device_number;
 	struct class *device_class;
@@ -53,8 +56,58 @@ void vchar_hw_exit(vchar_device_t *hardware)
 }
 
 /* ham doc tu cac thanh ghi du lieu cua thiet bi */
+int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers, char *kbuf)
+{
+	int read_bytes = num_registers;
+
+	if ((hw->control_registers[CONTROL_ACCESS_REG] & CTRL_READ_DATA_BIT) == DISABLED)
+		return -1;
+
+	if (kbuf == NULL)
+		return -1;
+
+	if (start_register > NUM_DATA_REGS)
+		return -1;
+
+	if (num_registers > (NUM_DATA_REGS - start_register))
+		read_bytes = NUM_DATA_REGS - start_register;
+
+	memcpy(kbuf, hw->data_registers + start_register, read_bytes);
+
+	hw->status_registers[READ_COUNT_L_REG]++;
+	if (hw->status_registers[READ_COUNT_L_REG] == 0)
+		hw->status_registers[READ_COUNT_H_REG]++;
+
+	return read_bytes;
+}
 
 /* ham ghi vao cac thanh ghi du lieu cua thiet bi */
+int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_registers, char* kbuf) {
+	int write_bytes = num_registers;
+
+	if ((hw->control_registers[CONTROL_ACCESS_REG] & CTRL_WRITE_DATA_BIT) == DISABLED)
+		return -1;
+
+	if (kbuf == NULL)
+		return -1;
+
+	if (start_register > NUM_DATA_REGS)
+		return -1;
+
+	if (num_registers > (NUM_DATA_REGS - start_register)) {
+		write_bytes = NUM_DATA_REGS - start_register;
+		hw->status_registers[DEVICE_STATUS_REG] |= STS_DATAREGS_OVERFLOW_BIT;
+	}
+
+	memcpy(hw->data_registers + start_register, kbuf, write_bytes);
+
+	hw->status_registers[WRITE_COUNT_L_REG]++;
+	if (hw->status_registers[WRITE_COUNT_L_REG] == 0) {
+		hw->status_registers[WRITE_COUNT_H_REG]++;
+	}
+
+	return write_bytes;
+}
 
 /* ham doc tu cac thanh ghi trang thai cua thiet bi */
 
@@ -75,14 +128,61 @@ static int vchar_driver_open(struct inode *inode, struct file *filp)
 
 static int vchar_driver_release(struct inode *inode, struct file *filp)
 {
+	random_number_driver.open_cnt--;
 	printk("Handled closed event\n");
 	return 0;
+}
+
+static ssize_t vchar_driver_read(struct file *filp, char __user *user_buffer, size_t len, loff_t *off)
+{
+	char *kernel_buffer = NULL;
+	int num_bytes = 0;
+
+	printk("Handle read event start from %lld, %zu bytes\n", *off, len);
+
+	kernel_buffer = kzalloc(len, GFP_KERNEL);
+	if (kernel_buffer == NULL)
+		return 0;
+	num_bytes = vchar_hw_read_data(random_number_driver.vchar_hardware, *off, len, kernel_buffer);
+	printk("read %d bytes from hardware\n", num_bytes);
+
+	if (num_bytes < 0)
+		return -EFAULT;
+	if (copy_to_user(user_buffer, kernel_buffer, num_bytes))
+		return -EFAULT;
+
+	*off += num_bytes;
+	return num_bytes;
+}
+
+static ssize_t vchar_driver_write(struct file *filp, const char __user *user_buffer, size_t len, loff_t *off)
+{
+	char *kernel_buffer = NULL;
+	int num_bytes = 0;
+
+	printk("Handle write event start from %lld for the size of %zu bytes\n", *off, len);
+
+	kernel_buffer = kzalloc(len, GFP_KERNEL);
+
+	if (copy_from_user(kernel_buffer, user_buffer, len))
+		return -EFAULT;
+
+	num_bytes = vchar_hw_write_data(random_number_driver.vchar_hardware, *off, len, kernel_buffer);
+	printk("Write %d bytes to hardware\n", num_bytes);
+
+	if (num_bytes < 0)
+		return -EFAULT;
+
+	*off += num_bytes;
+	return num_bytes;
 }
 
 static struct file_operations fops = {
 	.owner = THIS_MODULE,
 	.open = vchar_driver_open,
 	.release = vchar_driver_release,
+	.read = vchar_driver_read,
+	.write = vchar_driver_write,
 };
 
 /* ham khoi tao driver */
