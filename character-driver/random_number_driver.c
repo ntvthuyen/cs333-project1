@@ -1,13 +1,16 @@
 
-#include <linux/module.h> 
+#include <linux/device.h>
 #include <linux/fs.h>
+#include <linux/module.h>
 
 #define DRIVER_AUTHOR "Nguyen Ho Huu Nghia <huunghia160799@gmail.com>"
-#define DRIVER_DESC   "A sample character device driver"
-#define DRIVER_VERSION "0.2"
+#define DRIVER_DESC "A sample character device driver"
+#define DRIVER_VERSION "0.3"
 
 struct vchar_driver {
 	dev_t device_number;
+	struct class *device_class;
+	struct device *device;
 } random_number_driver;
 
 /****************************** device specific - START *****************************/
@@ -33,7 +36,7 @@ struct vchar_driver {
 /* ham khoi tao driver */
 static int __init vchar_driver_init(void)
 {
-	/* cap phat device number */
+	/* register device number */
 	int register_result;
 	// random_number_driver.device_number = MKDEV(69, 0);
 	random_number_driver.device_number = 0;
@@ -44,7 +47,19 @@ static int __init vchar_driver_init(void)
 	}
 	printk("Allocated device number (%d, %d)\n", MAJOR(random_number_driver.device_number), MINOR(random_number_driver.device_number));
 
-	/* tao device file */
+	/* create device file */
+	random_number_driver.device_class = class_create(THIS_MODULE, "class_vchar_dev");
+	if (random_number_driver.device_class == NULL) {
+		printk("Failed to create a device class\n");
+		unregister_chrdev_region(random_number_driver.device_number, 1);
+	}
+
+	random_number_driver.device = device_create(random_number_driver.device_class, NULL, random_number_driver.device_number, NULL, "vchar_dev");
+
+	if (IS_ERR(random_number_driver.device)) {
+		printk("Failed to create a device\n");
+		class_destroy(random_number_driver.device_class);
+	}
 
 	/* cap phat bo nho cho cac cau truc du lieu cua driver va khoi tao */
 
@@ -70,6 +85,8 @@ static void __exit vchar_driver_exit(void)
 	/* giai phong bo nho da cap phat cau truc du lieu cua driver */
 
 	/* xoa bo device file */
+	device_destroy(random_number_driver.device_class, random_number_driver.device_number);
+	class_destroy(random_number_driver.device_class);
 
 	/* giai phong device number */
 	unregister_chrdev_region(random_number_driver.device_number, 1);
@@ -81,8 +98,8 @@ static void __exit vchar_driver_exit(void)
 module_init(vchar_driver_init);
 module_exit(vchar_driver_exit);
 
-MODULE_LICENSE("GPL"); /* giay phep su dung cua module */
-MODULE_AUTHOR(DRIVER_AUTHOR); /* tac gia cua module */
-MODULE_DESCRIPTION(DRIVER_DESC); /* mo ta chuc nang cua module */
-MODULE_VERSION(DRIVER_VERSION); /* mo ta phien ban cuar module */
+MODULE_LICENSE("GPL");				   /* giay phep su dung cua module */
+MODULE_AUTHOR(DRIVER_AUTHOR);		   /* tac gia cua module */
+MODULE_DESCRIPTION(DRIVER_DESC);	   /* mo ta chuc nang cua module */
+MODULE_VERSION(DRIVER_VERSION);		   /* mo ta phien ban cuar module */
 MODULE_SUPPORTED_DEVICE("testdevice"); /* kieu device ma module ho tro */
