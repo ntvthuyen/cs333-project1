@@ -1,7 +1,7 @@
 #define REG_SIZE 1 //kich thuoc cua 1 thanh ghi la 1 byte (8 bits)
 #define NUM_CTRL_REGS 1 //so thanh ghi dieu khien cua thiet bi
 #define NUM_STS_REGS 5 //so thanh ghi trang thai cua thiet bi
-#define NUM_DATA_REGS 256 //so thanh ghi du lieu cua thiet bi
+#define NUM_DATA_REGS 11 //so thanh ghi du lieu cua thiet bi
 #define NUM_DEV_REGS (NUM_CTRL_REGS + NUM_STS_REGS + NUM_DATA_REGS) //tong so thanh ghi cua thiet bi
 
 /****************** Mo ta cac thanh ghi trang thai: START ******************/

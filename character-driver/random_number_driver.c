@@ -32,7 +32,7 @@ struct vchar_driver {
 // generate a random number as a char array
 char *random(void)
 {
-	const int MAX_LENGTH = 256;
+	const int MAX_LENGTH = 11;
 	int i;
 	get_random_bytes(&i, sizeof(i));
 	printk("%d", i);
@@ -52,7 +52,10 @@ char *random(void)
 		str[0] = '-';
 		i = i * -1;
 		++index;
-	};
+	}
+	else {
+		str[index++] = '0';
+	}
 	while (i > 0) {
 		str[index] = (char)(i % 10 + '0');
 		i = i / 10;
@@ -60,7 +63,7 @@ char *random(void)
 	}
 
 	int remaining = MAX_LENGTH - index, j = 0;
-	while(j++ < remaining) {
+	while (j++ < remaining) {
 		str[index++] = '/0';
 	}
 	printk("final random number: %s", str);
