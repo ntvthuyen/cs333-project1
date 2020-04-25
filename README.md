@@ -1,6 +1,6 @@
 # CS333 - Project 1
 ## Group information
-Niguyen Ho Huu Nghiai 1751013
+Niguyen Ho Huu Nghia 1751013
 
 Dao Hieu 1751005 
 
