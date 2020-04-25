@@ -35,12 +35,14 @@ static int __init vchar_driver_init(void)
 {
 	/* cap phat device number */
 	int register_result;
-	random_number_driver.device_number = MKDEV(69, 0);
-	register_result = register_chrdev_region(random_number_driver.device_number, 1, "random_number_driver");
+	// random_number_driver.device_number = MKDEV(69, 0);
+	random_number_driver.device_number = 0;
+	register_result = alloc_chrdev_region(&random_number_driver.device_number, 0, 1, "random_number_driver");
 	if (register_result < 0) {
 		printk("Failed to register device number\n");
 		return register_result;
 	}
+	printk("Allocated device number (%d, %d)\n", MAJOR(random_number_driver.device_number), MINOR(random_number_driver.device_number));
 
 	/* tao device file */
 
@@ -52,7 +54,7 @@ static int __init vchar_driver_init(void)
 
 	/* dang ky ham xu ly ngat */
 
-	printk("Initialize vchar driver successfully\n");
+	printk("Initialize random number driver successfully\n");
 	return 0;
 }
 
@@ -72,7 +74,7 @@ static void __exit vchar_driver_exit(void)
 	/* giai phong device number */
 	unregister_chrdev_region(random_number_driver.device_number, 1);
 
-	printk("Exit vchar driver\n");
+	printk("Exit random number driver\n");
 }
 /********************************* OS specific - END ********************************/
 

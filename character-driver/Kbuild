@@ -3,4 +3,4 @@
 
 EXTRA_CFLAGS = -Wall
 
-obj-m        = vchar_driver.o
+obj-m        = random_number_driver.o
