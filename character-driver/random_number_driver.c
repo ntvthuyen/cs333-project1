@@ -2,6 +2,7 @@
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/module.h>
+#include <linux/random.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
@@ -28,8 +29,46 @@ struct vchar_driver {
 	unsigned int open_cnt;
 } random_number_driver;
 
+// generate a random number as a char array
+char *random(void)
+{
+	const int MAX_LENGTH = 256;
+	int i;
+	get_random_bytes(&i, sizeof(i));
+	printk("%d", i);
+
+	// int t = i, c = 0;
+	// if (t < 0) {
+	// 	t = -t;
+	// 	// c = 1;
+	// }
+	// while (t > 0) {
+	// 	t = t / 10;
+	// 	// ++c;
+	// }
+	char *str = kzalloc(MAX_LENGTH, GFP_KERNEL);
+	int index = 0;
+	if (i < 0) {
+		str[0] = '-';
+		i = i * -1;
+		++index;
+	};
+	while (i > 0) {
+		str[index] = (char)(i % 10 + '0');
+		i = i / 10;
+		++index;
+	}
+
+	int remaining = MAX_LENGTH - index, j = 0;
+	while(j++ < remaining) {
+		str[index++] = '/0';
+	}
+	printk("final random number: %s", str);
+	return str;
+}
+
 /****************************** device specific - START *****************************/
-/* ham khoi tao thiet bi */
+/* initialize the character device */
 int vchar_hw_init(vchar_device_t *hardware)
 {
 	char *buffer;
@@ -49,13 +88,13 @@ int vchar_hw_init(vchar_device_t *hardware)
 	return 0;
 }
 
-/* ham giai phong thiet bi */
+/* what to do when the device is destroyed */
 void vchar_hw_exit(vchar_device_t *hardware)
 {
 	kfree(hardware->control_registers);
 }
 
-/* ham doc tu cac thanh ghi du lieu cua thiet bi */
+/* read the data from the device's registers, put that in the buffer and then return the number of bytes read */
 int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers, char *kbuf)
 {
 	int read_bytes = num_registers;
@@ -72,7 +111,10 @@ int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers
 	if (num_registers > (NUM_DATA_REGS - start_register))
 		read_bytes = NUM_DATA_REGS - start_register;
 
-	memcpy(kbuf, hw->data_registers + start_register, read_bytes);
+	char *number = random();
+	memcpy(kbuf, number, read_bytes);
+
+	// memcpy(kbuf, hw->data_registers + start_register, read_bytes);
 
 	hw->status_registers[READ_COUNT_L_REG]++;
 	if (hw->status_registers[READ_COUNT_L_REG] == 0)
@@ -81,8 +123,9 @@ int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers
 	return read_bytes;
 }
 
-/* ham ghi vao cac thanh ghi du lieu cua thiet bi */
-int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_registers, char* kbuf) {
+/* write the data from the kernel buffer to registers, then return the number bytes written */
+int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_registers, char *kbuf)
+{
 	int write_bytes = num_registers;
 
 	if ((hw->control_registers[CONTROL_ACCESS_REG] & CTRL_WRITE_DATA_BIT) == DISABLED)
@@ -118,7 +161,7 @@ int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_register
 /******************************* device specific - END *****************************/
 
 /******************************** OS specific - START *******************************/
-/* cac ham entry points */
+/* entry points function */
 static int vchar_driver_open(struct inode *inode, struct file *filp)
 {
 	random_number_driver.open_cnt++;
@@ -177,6 +220,7 @@ static ssize_t vchar_driver_write(struct file *filp, const char __user *user_buf
 	return num_bytes;
 }
 
+// mounting the entry functions above to the corresponding system calls
 static struct file_operations fops = {
 	.owner = THIS_MODULE,
 	.open = vchar_driver_open,
@@ -185,7 +229,7 @@ static struct file_operations fops = {
 	.write = vchar_driver_write,
 };
 
-/* ham khoi tao driver */
+/* initializing the driver */
 static int __init vchar_driver_init(void)
 {
 	/* register device number */
@@ -206,7 +250,7 @@ static int __init vchar_driver_init(void)
 		goto failed_create_class;
 	}
 
-	random_number_driver.device = device_create(random_number_driver.device_class, NULL, random_number_driver.device_number, NULL, "vchar_dev");
+	random_number_driver.device = device_create(random_number_driver.device_class, NULL, random_number_driver.device_number, NULL, "random_number_char_dev");
 
 	if (IS_ERR(random_number_driver.device)) {
 		printk("Failed to create a device\n");
