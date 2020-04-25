@@ -1,0 +1,6 @@
+#cd /home/ubuntu/ldd/phan_1/bai_1_3
+#vim Kbuild
+
+EXTRA_CFLAGS = -Wall
+
+obj-m        = vchar_driver.o
