@@ -1,9 +1,14 @@
 
 #include <linux/module.h> 
+#include <linux/fs.h>
 
 #define DRIVER_AUTHOR "Nguyen Ho Huu Nghia <huunghia160799@gmail.com>"
 #define DRIVER_DESC   "A sample character device driver"
-#define DRIVER_VERSION "0.1"
+#define DRIVER_VERSION "0.2"
+
+struct vchar_driver {
+	dev_t device_number;
+} random_number_driver;
 
 /****************************** device specific - START *****************************/
 /* ham khoi tao thiet bi */
@@ -29,6 +34,13 @@
 static int __init vchar_driver_init(void)
 {
 	/* cap phat device number */
+	int register_result;
+	random_number_driver.device_number = MKDEV(69, 0);
+	register_result = register_chrdev_region(random_number_driver.device_number, 1, "random_number_driver");
+	if (register_result < 0) {
+		printk("Failed to register device number\n");
+		return register_result;
+	}
 
 	/* tao device file */
 
@@ -58,6 +70,7 @@ static void __exit vchar_driver_exit(void)
 	/* xoa bo device file */
 
 	/* giai phong device number */
+	unregister_chrdev_region(random_number_driver.device_number, 1);
 
 	printk("Exit vchar driver\n");
 }
