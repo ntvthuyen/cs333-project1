@@ -1,6 +1,6 @@
 #include "random.h"
 
-char *random(void)
+char *random()
 {
 	const int MAX_LENGTH = 11;
 	int i;
