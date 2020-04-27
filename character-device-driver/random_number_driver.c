@@ -66,7 +66,7 @@ char *random(void)
 		++index;
 	}
 
-	// extract the rest of the digits (these digits are in the wrong direction)
+	// extract the digits (these digits are in the wrong direction)
 	char *temp = kzalloc(c + 1, GFP_KERNEL);
 	int temp_index = 0;
 	while (i > 0) {
@@ -77,7 +77,7 @@ char *random(void)
 
 	// revert the digits to the right direction
 	int k = temp_index - 1;
-	while(k >= 0) {
+	while (k >= 0) {
 		str[index++] = temp[k--];
 	}
 
@@ -170,16 +170,13 @@ int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_register
 	return write_bytes;
 }
 
-/* ham doc tu cac thanh ghi trang thai cua thiet bi */
-
-/* ham ghi vao cac thanh ghi dieu khien cua thiet bi */
-
-/* ham xu ly tin hieu ngat gui tu thiet bi */
-
 /******************************* device specific - END *****************************/
+
+
 
 /******************************** OS specific - START *******************************/
 /* entry points function */
+
 static int vchar_driver_open(struct inode *inode, struct file *filp)
 {
 	random_number_driver.open_cnt++;
@@ -275,21 +272,21 @@ static int __init vchar_driver_init(void)
 		goto failed_create_device;
 	}
 
-	/* cap phat bo nho cho cac cau truc du lieu cua driver va khoi tao */
+	/* allocate the memory for the data structure used by the driver */
 	random_number_driver.vchar_hardware = kzalloc(sizeof(vchar_device_t), GFP_KERNEL);
 	if (!random_number_driver.vchar_hardware) {
 		printk("Failed to allocate memory for the data structure of the driver\n");
 		goto failed_allocate_structure;
 	}
 
-	/* khoi tao thiet bi vat ly */
+	/* init the hardware of the character device */
 	result = vchar_hw_init(random_number_driver.vchar_hardware);
 	if (result < 0) {
 		printk("Failed to initialize the virtual character device hardware\n");
 		goto failed_init_hw;
 	}
 
-	/* dang ky cac entry point voi kernel */
+	/* allocate the memory for vcdev, then register the entry points to the OS */
 	random_number_driver.vcdev = cdev_alloc();
 	if (random_number_driver.vcdev == NULL) {
 		printk("Failed to allocate cdev data structure\n");
@@ -301,8 +298,6 @@ static int __init vchar_driver_init(void)
 		printk("Failed to add char device to the system\n");
 		goto failed_allocate_cdev;
 	}
-
-	/* dang ky ham xu ly ngat */
 
 	printk("Initialize random number driver successfully\n");
 	return 0;
@@ -321,25 +316,23 @@ failed_register_devnum:
 	return result;
 }
 
-/* ham ket thuc driver */
+/* what to free when the driver exits */
 static void __exit vchar_driver_exit(void)
 {
-	/* huy dang ky xu ly ngat */
-
-	/* huy dang ky entry point voi kernel */
+	/* delete entry points registered with the OS */
 	cdev_del(random_number_driver.vcdev);
 
-	/* giai phong thiet bi vat ly */
+	/* free the hardware */
 	vchar_hw_exit(random_number_driver.vchar_hardware);
 
-	/* giai phong bo nho da cap phat cau truc du lieu cua driver */
+	/* free the memory for the driver's data structure */
 	kfree(random_number_driver.vchar_hardware);
 
-	/* xoa bo device file */
+	/* destroy the device file as well as the device file class */
 	device_destroy(random_number_driver.device_class, random_number_driver.device_number);
 	class_destroy(random_number_driver.device_class);
 
-	/* giai phong device number */
+	/* unregister the device number */
 	unregister_chrdev_region(random_number_driver.device_number, 1);
 
 	printk("Exit random number driver\n");
@@ -349,8 +342,8 @@ static void __exit vchar_driver_exit(void)
 module_init(vchar_driver_init);
 module_exit(vchar_driver_exit);
 
-MODULE_LICENSE("GPL");				   /* giay phep su dung cua module */
-MODULE_AUTHOR(DRIVER_AUTHOR);		   /* tac gia cua module */
-MODULE_DESCRIPTION(DRIVER_DESC);	   /* mo ta chuc nang cua module */
-MODULE_VERSION(DRIVER_VERSION);		   /* mo ta phien ban cuar module */
-MODULE_SUPPORTED_DEVICE("testdevice"); /* kieu device ma module ho tro */
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR(DRIVER_AUTHOR);
+MODULE_DESCRIPTION(DRIVER_DESC);
+MODULE_VERSION(DRIVER_VERSION);
+MODULE_SUPPORTED_DEVICE("testdevice");
