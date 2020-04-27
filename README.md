@@ -10,7 +10,7 @@ Nguyen Truong Vinh Thuyen 1751042
 
 ### Random function
 
-Random function random a signed integer and convert it to a string and return it.
+Random function random a signed integer and convert it to a char array and return it.
 
 ```c
 char *random(void)
@@ -68,3 +68,9 @@ char *random(void)
 	return str;
 }
 ```
+
+### Folder character-device-driver
+**The source code for the random number generator driver**
+- `Kbuild` + `Makefile`: keep the instructions to compile `random_number_driver.c` and `random_number_driver.h` into loadable object files
+- `random_number_driver.h`: contains configuration for the character device. *More details can be found in the comments in the source code*.
+- `random_number_driver.c`: the main code for the driver. The overall structure of the file is going to be presented below. However, for more detailed view of the operations inside each funciton, please refer to the comments in the source code.
