@@ -1,8 +1,13 @@
 #ifndef  _RANDOM_H_
 #define _RANDOM_H_
 
-int random_integer();
-unsigned int random_unsigned_integer();
-double random_double();
+#include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/fs.h>
+#include <linux/module.h>
+#include <linux/random.h>
+#include <linux/slab.h>
+#include <linux/uaccess.h>
 
+char * random();
 #endif
