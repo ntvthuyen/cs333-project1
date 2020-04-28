@@ -69,8 +69,8 @@ char *random(void)
 }
 ```
 
-### Folder character-device-driver
-**The source code for the random number generator driver**
+### Random number generator character device driver
+**The source code is in ./random_number_char_dev_driver**
 - `Kbuild` + `Makefile`: keep the instructions to compile `random_number_driver.c` and `random_number_driver.h` into loadable object files
 - `random_number_driver.h`: contains configuration for the character device. *More details can be found in the comments in the source code*.
 - `random_number_driver.c`: the main code for the driver. The overall structure of the file is going to be presented below. However, for more detailed view of the operations inside each funciton, please refer to the comments in the source code.
