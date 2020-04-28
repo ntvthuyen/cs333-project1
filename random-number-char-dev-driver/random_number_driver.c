@@ -21,12 +21,12 @@ typedef struct vchar_dev {
 
 // The main class for the driver
 struct vchar_driver {
-	dev_t device_number;
-	struct class *device_class;
-	struct device *device;
-	vchar_device_t *vchar_hardware;
-	struct cdev *vcdev;
-	unsigned int open_cnt;
+	dev_t device_number; // device number consist of major and minor number
+	struct class *device_class; // the device class
+	struct device *device; // the device
+	vchar_device_t *vchar_hardware; // the pointer to the underlying character device struct
+	struct cdev *vcdev; //  the pointer to the character device (cdev is supplied by the library)
+	unsigned int open_cnt; // the number of open entry points
 } random_number_driver;
 
 // generate a random number as a char array
