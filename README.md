@@ -6,6 +6,23 @@ Dao Hieu 1751005
 
 Nguyen Truong Vinh Thuyen 1751042 
 
+## How to use
+
+### Compile and load the module to the kernel
+```bash
+cd ./random_number_char_dev_driver
+make all
+sudo rmmod random_number_driver
+sudo insmod random_number_driver.ko
+sudo chmod 666 /dev/random_number_char_dev
+```
+### Everytime, you read the file, a new random number is returned 
+**The string returned has 11 characters, if the random number does not take up 11 characters, space is padded at the front**
+An example way to run is through `cat`
+```bash
+sudo cat /dev/random_number_char_dev
+```
+
 ## Modules
 
 ### Random function
