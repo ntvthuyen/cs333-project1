@@ -92,3 +92,8 @@ char *random(void)
 - `Kbuild` + `Makefile`: keep the instructions to compile `random_number_driver.c` and `random_number_driver.h` into loadable object files
 - `random_number_driver.h`: contains configuration for the character device. *More details can be found in the comments in the source code*.
 - `random_number_driver.c`: the main code for the driver. The overall structure of the file is going to be presented below. However, for more detailed view of the operations inside each funciton, please refer to the comments in the source code.
+	- Structs:
+		- vchar_dev: containing the registers as char arrays for the character device.
+		- vchar_driver: containing the data structures used for the driver
+	- Device specific block: codes instructing the CPU to interact with the character device
+	- OS specific block: codes interacting with the OS to allocate resources and register the driver's entry point to the OS.
