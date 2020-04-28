@@ -115,7 +115,7 @@ void vchar_hw_exit(vchar_device_t *hardware)
 /* read the data from the device's registers, put that in the buffer and then return the number of bytes read */
 int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers, char *kbuf)
 {
-	int read_bytes = num_registers;
+	int number_bytes_read = num_registers;
 
 	if ((hw->control_registers[CONTROL_ACCESS_REG] & CTRL_READ_DATA_BIT) == DISABLED)
 		return -1;
@@ -127,24 +127,24 @@ int vchar_hw_read_data(vchar_device_t *hw, int start_register, int num_registers
 		return -1;
 
 	if (num_registers > (NUM_DATA_REGS - start_register))
-		read_bytes = NUM_DATA_REGS - start_register;
+		number_bytes_read = NUM_DATA_REGS - start_register;
 
 	char *number = random();
-	memcpy(kbuf, number, read_bytes);
+	memcpy(kbuf, number, number_bytes_read);
 
-	// memcpy(kbuf, hw->data_registers + start_register, read_bytes);
+	// memcpy(kbuf, hw->data_registers + start_register, number_bytes_read);
 
 	hw->status_registers[READ_COUNT_L_REG]++;
 	if (hw->status_registers[READ_COUNT_L_REG] == 0)
 		hw->status_registers[READ_COUNT_H_REG]++;
 
-	return read_bytes;
+	return number_bytes_read;
 }
 
 /* write the data from the kernel buffer to registers, then return the number bytes written */
 int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_registers, char *kbuf)
 {
-	int write_bytes = num_registers;
+	int number_bytes_written = num_registers;
 
 	if ((hw->control_registers[CONTROL_ACCESS_REG] & CTRL_WRITE_DATA_BIT) == DISABLED)
 		return -1;
@@ -156,18 +156,18 @@ int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_register
 		return -1;
 
 	if (num_registers > (NUM_DATA_REGS - start_register)) {
-		write_bytes = NUM_DATA_REGS - start_register;
+		number_bytes_written = NUM_DATA_REGS - start_register;
 		hw->status_registers[DEVICE_STATUS_REG] |= STS_DATAREGS_OVERFLOW_BIT;
 	}
 
-	memcpy(hw->data_registers + start_register, kbuf, write_bytes);
+	memcpy(hw->data_registers + start_register, kbuf, number_bytes_written);
 
 	hw->status_registers[WRITE_COUNT_L_REG]++;
 	if (hw->status_registers[WRITE_COUNT_L_REG] == 0) {
 		hw->status_registers[WRITE_COUNT_H_REG]++;
 	}
 
-	return write_bytes;
+	return number_bytes_written;
 }
 
 /******************************* device specific - END *****************************/
