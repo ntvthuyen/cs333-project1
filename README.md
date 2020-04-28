@@ -10,7 +10,7 @@ Nguyen Truong Vinh Thuyen 1751042
 
 ### Compile and load the module to the kernel
 ```bash
-cd ./random_number_char_dev_driver
+cd ./random-number-char-dev-driver
 make all
 sudo rmmod random_number_driver
 sudo insmod random_number_driver.ko
@@ -18,7 +18,8 @@ sudo chmod 666 /dev/random_number_char_dev
 ```
 ### Everytime, you read the file, a new random number is returned 
 **The string returned has 11 characters, if the random number does not take up 11 characters, space is padded at the front**
-An example way to run is through `cat`
+
+- An example way to run is through `cat`
 ```bash
 sudo cat /dev/random_number_char_dev
 ```
@@ -87,7 +88,7 @@ char *random(void)
 ```
 
 ### Random number generator character device driver
-**The source code is in ./random_number_char_dev_driver**
+**The source code is in ./random-number-char-dev-driver**
 - `Kbuild` + `Makefile`: keep the instructions to compile `random_number_driver.c` and `random_number_driver.h` into loadable object files
 - `random_number_driver.h`: contains configuration for the character device. *More details can be found in the comments in the source code*.
 - `random_number_driver.c`: the main code for the driver. The overall structure of the file is going to be presented below. However, for more detailed view of the operations inside each funciton, please refer to the comments in the source code.
