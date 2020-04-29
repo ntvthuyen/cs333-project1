@@ -177,6 +177,7 @@ int vchar_hw_write_data(vchar_device_t *hw, int start_register, int num_register
 /******************************** OS specific - START *******************************/
 /* entry points function */
 
+// entry point function for open operation
 static int vchar_driver_open(struct inode *inode, struct file *filp)
 {
 	random_number_driver.open_cnt++;
@@ -184,6 +185,7 @@ static int vchar_driver_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+// entry point function for release operation
 static int vchar_driver_release(struct inode *inode, struct file *filp)
 {
 	random_number_driver.open_cnt--;
@@ -191,6 +193,7 @@ static int vchar_driver_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+// entry point function for read operation
 static ssize_t vchar_driver_read(struct file *filp, char __user *user_buffer, size_t len, loff_t *off)
 {
 	char *kernel_buffer = NULL;

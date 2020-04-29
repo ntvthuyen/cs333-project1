@@ -1,10 +1,10 @@
 # CS333 - Project 1
 ## Group information
-Nguyen Ho Huu Nghia 1751013
+Nguyen Ho Huu Nghia 1751013 - **17APCS2**
 
-Dao Hieu 1751005 
+Dao Hieu 1751005 - **17APCS1**
 
-Nguyen Truong Vinh Thuyen 1751042 
+Nguyen Truong Vinh Thuyen 1751042  - **17APCS1**
 
 ## How to use
 
@@ -12,8 +12,22 @@ Nguyen Truong Vinh Thuyen 1751042
 ```bash
 cd ./random-number-char-dev-driver
 make all
+```
+![](https://i.imgur.com/RvCrbET.png)
+```
 sudo rmmod random_number_driver
+```
+```
 sudo insmod random_number_driver.ko
+```
+```
+dmesg # see if the module is loaded
+```
+
+![](https://i.imgur.com/vOZwySj.png)
+
+
+```
 sudo chmod 666 /dev/random_number_char_dev
 ```
 ### Everytime, you read the file, a new random number is returned 
@@ -23,6 +37,8 @@ sudo chmod 666 /dev/random_number_char_dev
 ```bash
 sudo cat /dev/random_number_char_dev
 ```
+
+![](https://i.imgur.com/QmC3NtY.png)
 
 ## Modules
 
